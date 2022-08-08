@@ -1,0 +1,62 @@
+#This is the guide for Massa Labs Round 13. Starting from Aug 6th, 2022 till Aug 29th, 2022. 
+#Download Binary file and unzip it.
+
+cd $HOME
+wget https://github.com/massalabs/massa/releases/download/TEST.13.0/massa_TEST.13.0_release_linux.tar.gz
+
+tar -xvf massa_TEST.13.0_release_linux.tar.gz
+
+rm -f massa_TEST.13.0_release_linux.tar.gz
+
+#Config Routability
+cd $HOME/massa/massa-node/config
+
+nano config.toml
+
+#content
+[network]
+routable_ip = "Your node IP address"
+
+#open port in firewall
+ufw allow 31244 && ufw allow 31245
+
+# Replace "PASSWORD" by your own password
+sudo tee /etc/systemd/system/massa-node.service > /dev/null <<EOF
+[Unit]
+Description=Massa Node
+After=network-online.target
+[Service]
+User=$USER
+WorkingDirectory=$HOME/massa/massa-node
+ExecStart=$HOME/massa/massa-node/massa-node -p PASSWORD
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65535
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable massa-node
+sudo systemctl restart massa-node
+
+#Now start your massa-client
+cd $HOME/massa/massa-client && ./massa-client
+
+#Create new wallet
+wallet_generate_secret_key
+
+#Check your wallet info, remember to save all the info.
+wallet_info
+
+#Get faucet from Massa Labs Discord then enable the staking
+#Replace Address & Secrect_key by your wallet info
+buy_rolls Address 1 0
+
+node_add_staking_secret_keys Secret_key
+
+#Now your node is up and running. You should follow instruction to link your node, Discord account with Massa Labs Bot. 
+#Go to testnet-reward-registration in Massa Labs Discord to start working with the bot
+#Instruction https://github.com/massalabs/massa/wiki/testnet_rules
+
+
